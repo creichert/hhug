@@ -18,3 +18,5 @@ ghc-*
 *.hi
 Main
 Setup.hs
+html/
+*.aes

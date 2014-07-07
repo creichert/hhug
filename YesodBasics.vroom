@@ -1,0 +1,175 @@
+---- config
+title: Yesod Basics
+height: 84
+width: 20
+font-size: x-large
+auto_size: 1
+#skip: 12
+
+---- center
+
+Yesod Basics
+
+by Christopher :: Reichert
+
+Houston Haskell Users Group
+
+---- i10
+== Yesod
+
+* Web Framework for Haskell
+
++* /jɪ'sod/ יְסוֺד. yi as in yip, sod as in soda, stress on sod.
+
++* Uses Warp HTTP server: (http://aosabook.org/en/posa/warp.html)
+
++* Enforces type safety as much as possible (urls, persistence).
+
++* DSLs for persistence, routing, and more.
+
+---- i10
+== Install Yesod
+
+* `cabal install yesod yesod-bin`.
+
++* Make sure to use sandboxes!
+
++* Use `yesod devel` to recompile files when they change.
+
+---- i10
+== Foundation - (יסוד)
+
++* The word Yesod (יסוד) means foundation in Hebrew.
+
++* Each Yesod application has a foundation datatype.
++    ** Most often seen as "App" in tutorials.
+
++* Must be an instance of the Yesod typeclass.
+
+---- i10
+== Routing
+
++* Yesod uses a declarative style for specifying routes.
+
++* `mkYesod`, a template haskell function, generates routing instances for
+    the foundation type, parser/render functions, dispatch functions, etc.
+
++* Use `ghc -ddump-splices` to see the generated code.
+
+---- i10
+== Routing
+
+* `parseRoutes` is a quasiquoter which defines how to parse and interpret
+    the routes.
+
++* Quasiquoting allows programmers to use custom, domain-specific syntax to
+   construct fragments of their program.
++    ** {-# LANGUAGE QuasiQuotes #-}
+
+---- i10
+== Routing
+
++* Routes are data constructors which allow us to have type-safe routing.
+
++* Generated routes have a corresponding handler. e.g. `handleHomeR or getHomeR`, `postHomeR`.
+
++* Type safe URLs have benefits:
++       ** Passing type-safe parameters (/peope/#PersonId). PersonId can be used
+           as a Persistence key.
++       ** Make changes to url structure with piece of mind.
++       ** High level authentication scheme (isAuthorized) pattern matches on Route types.
+
+---- i10
+== Shakespeare Templates
+
++* Hamlet (HTML)
++    ** Whitespace sensitive. Indentation denotes nesting.
++    ** Syntax support for conditionals, Maybe, forall, case, and with.
+
++* Julius (Javascript)
++    ** Mostly just regular javascript.
+
++* Lucius (CSS)
++    ** Similar to LESS
+
++* Cassius (CSS)
++    ** Subset of Lucius with nesting denoted by whitespace.
+
+---- i10
+== Shakespeare Templates
+
++* Variable interpolation `#{..}`
+
++* URL validation and type-safe urls, "<a href=@{HomeR}>Home"
+
++* Compile-time gaurantees of well-formed content.
+
++* Automatic coupling of related html,css,js using widgets.
+
++* Some included support for TypeScript, CoffeeScript, etc.
+
+---- i10
+== Persistence
+
++* Yesod database layer is known as Persistence.
+
++* Database agnostic. PostgreSQL, SQLite, MongoDB, MySQL.
+
++* Convenient data modeling syntax.
++    ** Uses `mkPersist` and `persistLowerCase` quasiquoting sytnax.
++    ** Other conveniences built-in. e.g. JSON serialization.
+
++* Automatic database migration (`mkMigrate`).
+
++* No joins. Use something like Esqueleto if you need that functionality.
+
+---- haskell,i10
+
+-- share passes info from persist block to each template haskell
+-- function and concats the result.
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+Person
+    name String
+    age Int Maybe
+    deriving Show
+BlogPost json
+    title String
+    authorId PersonId
+    deriving Show
+|]
+
+main :: IO ()
+main = runSqlite ":memory:" $ do
+    runMigration migrateAll
+
+    johnId <- insert $ Person "John Doe" $ Just 35
+    janeId <- insert $ Person "Jane Doe" Nothing
+
+    insert $ BlogPost "My fr1st p0st" johnId
+    insert $ BlogPost "One more for good measure" johnId
+
+    oneJohnPost <- selectList [BlogPostAuthorId ==. johnId] [LimitTo 1]
+    liftIO $ print (oneJohnPost :: [Entity BlogPost])
+
+    john <- get johnId
+    liftIO $ print (john :: Maybe Person)
+
+----
+== Yesod Scaffolding Tool
+
+* Use `yesod init` to generate a new site.
+
++* `Foundation.hs`
++* config/
++* Handlers/
++* templates/
+
+---- center
+
+THE END
+
+Houston Haskell Users Group
+
+Slides and code: git@github.com:creichert/hhug.git
+
+July 7, 2014
