@@ -12,7 +12,6 @@ cabal*
 .vimrc
 .help
 *.slide
-ghc-*
 *.save*
 *.o
 *.hi
